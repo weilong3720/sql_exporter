@@ -1,0 +1,32 @@
+collector_name: pricing_data_freshness
+
+metrics:
+  - metric_name: pricing_update_time
+    type: gauge
+    help: 'Time when prices for a market were last updated.'
+    key_labels:
+      # Populated from the `market` column of each row.
+      - name
+      - fieldTotal
+      - tableTotal
+    static_labels:
+      # Arbitrary key/value pair
+    values: [dept]
+    query: |
+      SELECT name,C.dept, tableTotal,fieldTotal from catalog JOIN (
+                  SELECT A.dept, tableTotal,fieldTotal from  (SELECT catalog_type.dept as dept,count(1) AS tableTotal from catalog_type  GROUP BY dept ) A JOIN
+                  (SELECT catalog_type.dept as dept,count(1) AS fieldTotal from catalog_type LEFT JOIN catalog_type_info on catalog_type.id=catalog_type_info.typeId   GROUP BY dept) B  ON A.dept=B.dept ) C
+                  on catalog.dept= C.dept
+
+  - metric_name: Catalog_Table_field_Info
+    type: gauge
+    help: '数据库中不同部门下的表、字段统计'
+    key_labels:
+      - name
+    value_label: 'state'
+    values: [tableTotal,fieldTotal]
+    query: |
+      SELECT name,C.dept, tableTotal,fieldTotal from catalog JOIN (
+            SELECT A.dept, tableTotal,fieldTotal from  (SELECT catalog_type.dept as dept,count(1) AS tableTotal from catalog_type  GROUP BY dept ) A JOIN
+            (SELECT catalog_type.dept as dept,count(1) AS fieldTotal from catalog_type LEFT JOIN catalog_type_info on catalog_type.id=catalog_type_info.typeId   GROUP BY dept) B  ON A.dept=B.dept ) C
+            on catalog.dept= C.dept
