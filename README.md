@@ -1,0 +1,2 @@
+# sql_exporter
+用于自定义连接数据库取出自己想要的sql逻辑并以此对接prometheus
